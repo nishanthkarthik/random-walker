@@ -1,20 +1,20 @@
 FC = mpifort
 
-FCFLAGS = -g -fcheck=all -Wall
+FCFLAGS = -ggdb -fcheck=all -Wall
 
 PROGRAMS = walker
-MODULES = construct
+MODULES = construct.mod
 RUN = walker
 
-all: $(PROGRAMS)
+OBJ = $(patsubst %.f90, %.o, $(wildcard *.f90))
 
-%: %.o
-	$(FC) $(FCFLAGS) -o $@ $^ $(MODULES)
+all: $(MODULES) $(PROGRAMS)
 
-%.o: %.f90
+%: %.o $(OBJ)
+	$(FC) $(FCFLAGS) -o $@ $^
+
+%.o %.mod: %.f90
 	$(FC) $(FCFLAGS) -c $<
-
-
 
 .PHONY: clean aclean run
 
@@ -25,4 +25,4 @@ aclean:
 	rm -f $(PROGRAMS)
 
 run: $(RUN)
-	mpirun -n 4 $(RUN)
+	mpirun -n 2 $(RUN)

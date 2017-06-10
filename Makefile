@@ -1,10 +1,14 @@
+# Compiler
 FC = mpifort
-
 FCFLAGS = -ggdb -fcheck=all -Wall
 
+# Program
 PROGRAMS = walker
 MODULES = construct.mod
 RUN = walker
+
+# MPI
+NCORES = 4
 
 OBJ = $(patsubst %.f90, %.o, $(wildcard *.f90))
 
@@ -25,4 +29,4 @@ aclean:
 	rm -f $(PROGRAMS)
 
 run: $(RUN)
-	mpirun -n 2 $(RUN)
+	mpirun -n $(NCORES) $(RUN)

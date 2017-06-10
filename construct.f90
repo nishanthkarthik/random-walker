@@ -43,4 +43,62 @@ contains
         endif
     end subroutine throw_mpi
 
+    subroutine setwalker(wk, idx, pos, mxst)
+        implicit none
+        integer, intent(in) :: idx, pos, mxst
+        type(walkunit), intent(out) :: wk
+        wk%index = idx
+        wk%position = pos
+        wk%maxstep = mxst
+    end subroutine setwalker
+
 end module construct
+
+module decomposer
+
+    implicit none
+    integer :: ngrid = 50000
+
+contains
+    
+    subroutine getbounds(rank, world, l, u)
+        integer, intent(in) :: rank, world
+        integer, intent(out) :: l, u
+        integer :: seglength
+
+        seglength = ngrid / world
+        
+        if (rank /= (world - 1)) then
+            l = rank * seglength + 1
+            u = (rank + 1) * seglength
+        else
+            l = ngrid - (world - 2) * seglength
+            u = ngrid
+        endif
+    end subroutine getbounds
+    
+    subroutine walk(wk, l, u)
+        use construct
+        integer, intent(in) :: l, u
+        real :: r
+        type(walkunit), intent(inout) :: wk
+        integer :: i
+
+        if (wk%position < l) then
+            call MPI_Abort(MPI_COMM_WORLD, i, i)
+        endif
+
+        do while (.TRUE.)
+            call RANDOM_NUMBER(r)
+            wk%position = wk%position + int(r * wk%maxstep)
+            if (wk%position > u) then
+                wk%index = wk%index + 1
+                if (wk%position > ngrid) then
+                    wk%position = ngrid
+                endif
+                exit
+            endif
+        enddo
+    end subroutine walk
+
+end module decomposer

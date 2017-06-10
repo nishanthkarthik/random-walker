@@ -4,9 +4,10 @@ program walker
     implicit none
     
     integer :: world, rank, ierr, status(MPI_STATUS_SIZE)
-    integer :: l, u, nwk = 1, i
+    integer :: l, u, i, nwk = 10
     type(walkunit) :: wk
-    
+    type(walkunit), allocatable :: wks(:)
+
     call MPI_Init()
     call MPI_Comm_Size(MPI_COMM_WORLD, world)
     call MPI_Comm_Rank(MPI_COMM_WORLD, rank)
@@ -16,37 +17,47 @@ program walker
     call getbounds(rank, world, l, u)
     print *, rank, 'has bounds', '(', l, u, ')'
 
-    if (rank == 0) then
-        call setwalker(wk, 0, 1, 10)
+    if (rank == 0 .or. rank == (world - 1)) then
+        allocate(wks(nwk))
     endif
 
-    do i = 1, nwk
-        if (rank > 0) then
+    if (rank == 0) then
+        do i =1, nwk
+            call setwalker(wks(i), 0, 1, 20)
+            call walk(wks(i), l, u)
+            print *, rank, 'walk to', wks(i)%position
+            print *, rank, 'send', wks(i)%index, wks(i)%position
+            call MPI_Send(wks(i), 1, MPI_WALKER_TYPE, rank+1, 0, MPI_COMM_WORLD, ierr)
+            call throw_mpi(ierr)
+        enddo
+    else if (rank == (world - 1)) then
+        do i =1, nwk
+            call MPI_Recv(wks(i), 1, MPI_WALKER_TYPE, rank-1, 0, MPI_COMM_WORLD, status, ierr)
+            print *, rank, 'recv', wks(i)%index, wks(i)%position
+            call throw_mpi(ierr)
+            call walk(wks(i), l, u)
+            print *, rank, 'walk to', wks(i)%position
+        enddo
+    else
+        do i =1, nwk
             call MPI_Recv(wk, 1, MPI_WALKER_TYPE, rank-1, 0, MPI_COMM_WORLD, status, ierr)
             print *, rank, 'recv', wk%index, wk%position
             call throw_mpi(ierr)
-        endif
 
-        call walk(wk, l, u)
-        print *, rank, 'walk to', wk%position
-        
-        if ((rank+1) < world) then
+            call walk(wk, l, u)
+            print *, rank, 'walk to', wk%position
+
             print *, rank, 'send', wk%index, wk%position
             call MPI_Send(wk, 1, MPI_WALKER_TYPE, rank+1, 0, MPI_COMM_WORLD, ierr)
             call throw_mpi(ierr)
-        endif
+        enddo
+    endif
 
-    enddo
+    if (rank == 0 .or. rank == (world - 1)) then
+        deallocate(wks)
+    endif
 
-    ! if (rank == 0) then
-    !     wk%index = 100
-    !     wk%position = 200
-    !     wk%maxstep = 300
-    !     call MPI_Send(wk, 1, MPI_WALKER_TYPE, 1, 0, MPI_COMM_WORLD, ierr)
-    ! else if (rank == 1) then
-    !     call MPI_Recv(wk, 1, MPI_WALKER_TYPE, 0, 0, MPI_COMM_WORLD, status, ierr)
-    !     print *, wk%index, wk%position, wk%maxstep
-    ! endif
+    print *, 'hello'
 
     call MPI_Finalize()
 

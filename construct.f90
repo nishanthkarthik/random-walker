@@ -57,7 +57,7 @@ end module construct
 module decomposer
 
     implicit none
-    integer :: ngrid = 50000
+    integer :: ngrid = 100
 
 contains
     

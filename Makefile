@@ -8,7 +8,7 @@ MODULES = construct.mod
 RUN = walker
 
 # MPI
-NCORES = 4
+NCORES = 3
 
 OBJ = $(patsubst %.f90, %.o, $(wildcard *.f90))
 

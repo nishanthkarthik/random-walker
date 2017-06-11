@@ -35,6 +35,12 @@ contains
         call throw_mpi(ierr)
     end subroutine create_walker_type
 
+    subroutine free_walker_type()
+        implicit none
+        integer :: ie
+        call MPI_Type_free(MPI_WALKER_TYPE, ie)
+    end subroutine free_walker_type
+
     subroutine throw_mpi(ierr)
         implicit none
         integer :: ierr

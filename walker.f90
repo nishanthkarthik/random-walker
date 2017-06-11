@@ -1,6 +1,7 @@
 program walker
     use construct
     use decomposer
+    use extbind
     implicit none
     
     integer :: world, rank, ierr, status(MPI_STATUS_SIZE)
@@ -53,11 +54,20 @@ program walker
         enddo
     endif
 
+
     if (rank == 0 .or. rank == (world - 1)) then
-        deallocate(wks)
+        if (allocated(wks)) then
+            deallocate(wks)
+        endif
     endif
 
-    print *, 'hello'
+    call nop_inline(int(100, 8))
+
+    ! call free_walker_type()
+    ! print *, 'hello'
+    ! call sleep(1)
+
+    print *, allocated(wks)
 
     call MPI_Finalize()
 

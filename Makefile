@@ -1,24 +1,30 @@
 # Compiler
 FC = mpifort
+CC = gcc
 FCFLAGS = -ggdb -fcheck=all -Wall
 
 # Program
 PROGRAMS = walker
-MODULES = construct.mod
-RUN = walker
+MODULES = construct.mod extbind.mod
+EXTC = ext.c
+RUN = ./walker
 
 # MPI
 NCORES = 3
 
 OBJ = $(patsubst %.f90, %.o, $(wildcard *.f90))
+EXTCOBJ = $(patsubst %.c, %.o, $(EXTC))
 
-all: $(MODULES) $(PROGRAMS)
+all: ext $(MODULES) $(PROGRAMS)
 
 %: %.o $(OBJ)
-	$(FC) $(FCFLAGS) -o $@ $^
+	$(FC) $(FCFLAGS) -o $@ $^ $(EXTCOBJ)
 
 %.o %.mod: %.f90
 	$(FC) $(FCFLAGS) -c $<
+
+ext: 
+	$(CC) -c $(EXTC)
 
 .PHONY: clean aclean run
 
@@ -30,3 +36,6 @@ aclean:
 
 run: $(RUN)
 	mpirun -n $(NCORES) $(RUN)
+
+drun: $(RUN)
+	mpirun -n $(NCORES) valgrind $(RUN)

@@ -1,7 +1,7 @@
 
 module construct
+    use mpi
     implicit none
-    include 'mpif.h'
 
     public :: MPI_WALKER_TYPE, walkunit, create_walker_type
 
@@ -21,7 +21,7 @@ contains
         integer(kind=MPI_ADDRESS_KIND) :: offsets(3), intoffset, lowerbound
         integer :: ierr
         
-        call MPI_Type_Get_Extent(MPI_INTEGER, lowerbound, intoffset)
+        call MPI_Type_Get_Extent(MPI_INTEGER, lowerbound, intoffset, ierr)
         offsets(1) = 0
         offsets(2) = intoffset
         offsets(3) = 2 * intoffset
@@ -43,9 +43,9 @@ contains
 
     subroutine throw_mpi(ierr)
         implicit none
-        integer :: ierr
+        integer :: ierr, i
         if (ierr /= 0) then
-            call MPI_Abort(MPI_COMM_WORLD, ierr, ierr)
+            call MPI_Abort(MPI_COMM_WORLD, i, ierr)
         endif
     end subroutine throw_mpi
 
@@ -88,10 +88,10 @@ contains
         integer, intent(in) :: l, u
         real :: r
         type(walkunit), intent(inout) :: wk
-        integer :: i
+        integer :: i, ierr
 
         if (wk%position < l) then
-            call MPI_Abort(MPI_COMM_WORLD, i, i)
+            call MPI_Abort(MPI_COMM_WORLD, i, ierr)
         endif
 
         do while (.TRUE.)

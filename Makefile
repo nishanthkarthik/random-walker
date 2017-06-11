@@ -34,7 +34,7 @@ clean:
 aclean:
 	rm -f $(PROGRAMS)
 
-run: $(RUN)
+run: all
 	mpirun -n $(NCORES) $(RUN)
 
 drun: $(RUN)

@@ -9,9 +9,10 @@ program walker
     type(walkunit) :: wk
     type(walkunit), allocatable :: wks(:)
 
-    call MPI_Init()
-    call MPI_Comm_Size(MPI_COMM_WORLD, world)
-    call MPI_Comm_Rank(MPI_COMM_WORLD, rank)
+    call MPI_Init(ierr)
+    call throw_mpi(ierr)
+    call MPI_Comm_Size(MPI_COMM_WORLD, world, ierr)
+    call MPI_Comm_Rank(MPI_COMM_WORLD, rank, ierr)
 
     call create_walker_type()
 
@@ -61,14 +62,15 @@ program walker
         endif
     endif
 
-    call nop_inline(int(100, 8))
+    ! call nop_inline(int(100000000, 8))
 
     ! call free_walker_type()
-    ! print *, 'hello'
+    ! print *, ''
     ! call sleep(1)
 
-    print *, allocated(wks)
+    ! print *, allocated(wks)
 
-    call MPI_Finalize()
+    call MPI_Finalize(ierr)
+    print *, rank, 'finalizing with ierr =', ierr
 
 end program walker
